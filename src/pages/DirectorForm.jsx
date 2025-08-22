@@ -1,30 +1,42 @@
-import { useState } from "react"
+import { useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 function DirectorForm() {
-  const [name, setName] = useState("")
-  const [bio, setBio] = useState("")
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+
+  // Access directors state and setter from parent
+  const { directors, setDirectors } = useOutletContext();
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    const newDirector = { name, bio, movies: [] }
+    e.preventDefault();
+    const newDirector = { name, bio, movies: [] };
+
     fetch("http://localhost:4000/directors", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(newDirector)
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newDirector)
     })
-    .then(r => {
-        if (!r.ok) { throw new Error("failed to add director")}
-        return r.json()
-    })
-    .then(data => {
-        console.log(data)
-        // handle context/state changes
-        // navigate to newly created director page
-    })
-    .catch(console.log)
-  }
+      .then(r => {
+        if (!r.ok) { throw new Error("Failed to add director"); }
+        return r.json();
+      })
+      .then(data => {
+        // Update the context/state so other components see the new director
+        setDirectors([...directors, data]);
+
+        // Clear form
+        setName("");
+        setBio("");
+
+        // Navigate to the new director's detail page
+        navigate(`/directors/${data.id}`);
+      })
+      .catch(console.log);
+  };
 
   return (
     <div>
@@ -46,7 +58,7 @@ function DirectorForm() {
         <button type="submit">Add Director</button>
       </form>
     </div>
-  )
+  );
 }
 
-export default DirectorForm
+export default DirectorForm;
